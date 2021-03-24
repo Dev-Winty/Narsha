@@ -1,4 +1,4 @@
-/* #include <Arduino.h>
+#include <Arduino.h>
 #define X_DIR 21
 #define X_STOP 18
 #define X_STEP 15
@@ -11,7 +11,7 @@
 
 char x_stopped = 0;
 char y_stopped = 0;
-char motor_stop_x = 1;
+char motor_stop_x = 0;
 char motor_stop_y = 1;
 unsigned long curr_micros = 0;
 unsigned long pre_micros = 0;
@@ -49,36 +49,10 @@ void setup()
 	motor_stop_x = 0;
 	step_count_x = 0;
 }
-//void loop() {
-//  curr_micros = micros();
-//
-//  if (curr_micros - pre_micros > 200) {
-//    pre_micros = curr_micros;
-//    if (motor_stop_x == 0) {
-//      if (step_toggle == 0) {
-//        step_toggle = 1;
-//        digitalWrite(X_STEP, HIGH);
-//      }
-//      else if (step_toggle == 1) {
-//        step_toggle = 0;
-//        digitalWrite(X_STEP, LOW);
-//      }
-//    }
-//
-//  }
-//  int in_value = digitalRead(X_STOP);
-//  if (in_value == 1) {
-//    motor_stop_x = 1;
-//  }
-
-//----------------------------------------------------------
-
-//======================================================
 
 void loop()
 {
 	curr_micros = micros();
-	curr_millis = millis();
 
 	if (curr_micros - pre_micros > 200)
 	{
@@ -122,7 +96,7 @@ void loop()
 				step_toggle_y = 0;
 				digitalWrite(Y_STEP, LOW);
 				step_count_y++;
-				if (step_count_y > 4000)
+				if (step_count_y > 1600)
 				{
 					motor_stop_y = 1;
 					step_count_y = 0;
@@ -133,36 +107,6 @@ void loop()
 		} else {
 		}
 	}
-
-	//------------------------------------------
-
-	//  if(curr_millis - pre_millis > 1000) {
-	//    pre_millis = curr_millis;
-	//
-	//    if(dir_toggle == 0) {
-	//      dir_toggle = 1;
-	//      digitalWrite(X_DIR, LOW);
-	//    }
-	//    else if(dir_toggle == 1) {
-	//      dir_toggle = 0;
-	//      digitalWrite(X_DIR, HIGH);
-	//    }
-	//  }
-	//--------------------------------
-
-	//if(curr_millis - pre_millis_y > 2000) {
-	//    pre_millis_y = curr_millis;
-	//
-	//    if(dir_toggle_y == 0) {
-	//      dir_toggle_y = 1;
-	//      digitalWrite(Y_DIR, LOW);
-	//    }
-	//    else if(dir_toggle_y == 1) {
-	//      dir_toggle_y = 0;
-	//      digitalWrite(Y_DIR, HIGH);
-	//    }
-	//  }
-
 	//--------------------------------
 
 	int in_value = digitalRead(X_STOP);
@@ -173,13 +117,16 @@ void loop()
 
 	//----------------------------------
 
-	if (x_stopped == 1 && y_stopped == 0)
+	if (x_stopped == 1 && motor_stop_y == 1)
 	{
 		motor_stop_y = 0;
 		step_count_y = 0;
 	}
 	else if (x_stopped == 1 && y_stopped == 1)
 	{
+		digitalWrite(Y_DIR, LOW);
+		digitalWrite(X_DIR, LOW);
+
 		motor_stop_y = 0;
 		step_count_y = 0;
 
@@ -187,13 +134,3 @@ void loop()
 		step_count_x = 0;
 	}
 }
-//  int in_value = digitalRead(X_STOP);
-//  if(in_value == 0)
-//  //for(int i = 0; i < 800; i++)
-//  {
-//    digitalWrite(X_STEP, HIGH);
-//    delayMicroseconds(200);
-//    digitalWrite(X_STEP, LOW);
-//    delayMicroseconds(200);
-//  }
-//} */
