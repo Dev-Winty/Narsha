@@ -1,526 +1,401 @@
-# 1 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\main.ino"
-/* #include <Arduino.h>
-
-#define X_DIR 21
-
-#define X_STOP 18
-
-#define X_STEP 15
+# 1 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+# 2 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 2
 
 
 
-#define Y_DIR 23
-
-#define Y_STOP 19
-
-#define Y_STEP 22
 
 
 
-#define XYE_ENABLE 14
 
+enum {
+    RUNNING = 0,
+    STOPPED
+};
 
+enum {
+    DISABLE = 0,
+    ENABLE
+};
 
-char x_stopped = 0;
+enum dir {
+    LEFT = 0,
+    RIGHT,
+    UP,
+    DOWN
+};
 
-char y_stopped = 0;
+char toggleStepX = 0;
+char toggleStepY = 0;
 
-char motor_stop_x = 1;
+int stepCountX = 0;
+int stepCountY = 0;
 
-char motor_stop_y = 1;
+char enableMotorX = DISABLE;
+char enableMotorY = DISABLE;
 
-unsigned long curr_micros = 0;
+int countDistanceX = 0;
+int countDistanceY = 0;
 
-unsigned long pre_micros = 0;
+int halfPeriodX = 0;
+int halfPeriodY = 0;
 
-unsigned long curr_millis = 0;
+char inturruptStoppedX = STOPPED;
+char inturruptStoppedY = STOPPED;
 
-unsigned long pre_millis = 0;
+char state = 0;
 
-char step_toggle = 0;
-
-char dir_toggle = 0;
-
-
-
-unsigned int step_count_x = 0;
-
-unsigned int step_count_y = 0;
-
-
-
-unsigned long pre_micros_y = 0;
-
-unsigned long pre_millis_y = 0;
-
-char step_toggle_y = 0;
-
-char dir_toggle_y = 0;
-
-
-
-void setup()
-
-{
-
-	Serial.begin(9600);
-
-
-
-	pinMode(X_DIR, OUTPUT);
-
-	pinMode(X_STOP, INPUT);
-
-	pinMode(X_STEP, OUTPUT);
-
-
-
-	pinMode(XYE_ENABLE, OUTPUT);
-
-
-
-	pinMode(Y_DIR, OUTPUT);
-
-	pinMode(Y_STOP, INPUT);
-
-	pinMode(Y_STEP, OUTPUT);
-
-
-
-	digitalWrite(X_DIR, HIGH);
-
-	digitalWrite(Y_DIR, HIGH);
-
-	digitalWrite(XYE_ENABLE, LOW);
-
-
-
-	motor_stop_x = 0;
-
-	step_count_x = 0;
-
+void motorDirection(char dir) {
+    if (dir == LEFT) {
+        digitalWrite(21, 0x1);
+    } else if (dir == RIGHT) {
+        digitalWrite(21, 0x0);
+    } else if (dir == UP) {
+        digitalWrite(23, 0x0);
+    } else if (dir == DOWN) {
+        digitalWrite(23, 0x1);
+    }
 }
 
-//void loop() {
-
-//  curr_micros = micros();
-
-//
-
-//  if (curr_micros - pre_micros > 200) {
-
-//    pre_micros = curr_micros;
-
-//    if (motor_stop_x == 0) {
-
-//      if (step_toggle == 0) {
-
-//        step_toggle = 1;
-
-//        digitalWrite(X_STEP, HIGH);
-
-//      }
-
-//      else if (step_toggle == 1) {
-
-//        step_toggle = 0;
-
-//        digitalWrite(X_STEP, LOW);
-
-//      }
-
-//    }
-
-//
-
-//  }
-
-//  int in_value = digitalRead(X_STOP);
-
-//  if (in_value == 1) {
-
-//    motor_stop_x = 1;
-
-//  }
-
-
-
-//----------------------------------------------------------
-
-
-
-//======================================================
-
-
-
-void loop()
-
-{
-
-	curr_micros = micros();
-
-	curr_millis = millis();
-
-
-
-	if (curr_micros - pre_micros > 200)
-
-	{
-
-		pre_micros = curr_micros;
-
-		if (motor_stop_x == 0)
-
-		{
-
-			if (step_toggle == 0)
-
-			{
-
-				step_toggle = 1;
-
-				digitalWrite(X_STEP, HIGH);
-
-			}
-
-			else if (step_toggle == 1)
-
-			{
-
-				step_toggle = 0;
-
-				digitalWrite(X_STEP, LOW);
-
-				step_count_x++;
-
-				if (step_count_x > 3200)
-
-				{
-
-					motor_stop_x = 1;
-
-					step_count_x = 0;
-
-
-
-					x_stopped = 1;
-
-				}
-
-			}
-
-		}
-
-	}
-
-	//--------------------------------------------
-
-
-
-	if (curr_micros - pre_micros_y > 200)
-
-	{
-
-		pre_micros_y = curr_micros;
-
-		if (motor_stop_y == 0)
-
-		{
-
-			if (step_toggle_y == 0)
-
-			{
-
-				step_toggle_y = 1;
-
-				digitalWrite(Y_STEP, HIGH);
-
-			}
-
-			else if (step_toggle_y == 1)
-
-			{
-
-				step_toggle_y = 0;
-
-				digitalWrite(Y_STEP, LOW);
-
-				step_count_y++;
-
-				if (step_count_y > 4000)
-
-				{
-
-					motor_stop_y = 1;
-
-					step_count_y = 0;
-
-
-
-					y_stopped = 1;
-
-				}
-
-			}
-
-		} else {
-
-		}
-
-	}
-
-
-
-	//------------------------------------------
-
-
-
-	//  if(curr_millis - pre_millis > 1000) {
-
-	//    pre_millis = curr_millis;
-
-	//
-
-	//    if(dir_toggle == 0) {
-
-	//      dir_toggle = 1;
-
-	//      digitalWrite(X_DIR, LOW);
-
-	//    }
-
-	//    else if(dir_toggle == 1) {
-
-	//      dir_toggle = 0;
-
-	//      digitalWrite(X_DIR, HIGH);
-
-	//    }
-
-	//  }
-
-	//--------------------------------
-
-
-
-	//if(curr_millis - pre_millis_y > 2000) {
-
-	//    pre_millis_y = curr_millis;
-
-	//
-
-	//    if(dir_toggle_y == 0) {
-
-	//      dir_toggle_y = 1;
-
-	//      digitalWrite(Y_DIR, LOW);
-
-	//    }
-
-	//    else if(dir_toggle_y == 1) {
-
-	//      dir_toggle_y = 0;
-
-	//      digitalWrite(Y_DIR, HIGH);
-
-	//    }
-
-	//  }
-
-
-
-	//--------------------------------
-
-
-
-	int in_value = digitalRead(X_STOP);
-
-	if (in_value == 1)
-
-	{
-
-		motor_stop_x = 1;
-
-	}
-
-
-
-	//----------------------------------
-
-
-
-	if (x_stopped == 1 && y_stopped == 0)
-
-	{
-
-		motor_stop_y = 0;
-
-		step_count_y = 0;
-
-	}
-
-	else if (x_stopped == 1 && y_stopped == 1)
-
-	{
-
-		motor_stop_y = 0;
-
-		step_count_y = 0;
-
-
-
-		motor_stop_x = 0;
-
-		step_count_x = 0;
-
-	}
-
+void timerXDisable() {
+    
+# 59 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint8_t *)(0x6F)) 
+# 59 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+          = 0x00;
 }
 
-//  int in_value = digitalRead(X_STOP);
+void timerXEnable() {
+    
+# 63 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint16_t *)(0x94)) 
+# 63 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+         = 0;
+    
+# 64 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint8_t *)(0x6F)) 
+# 64 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+          = 0x02;
+}
 
-//  if(in_value == 0)
+void timerYDisable() {
+    
+# 68 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint8_t *)(0x71)) 
+# 68 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+          = 0x00;
+}
 
-//  //for(int i = 0; i < 800; i++)
+void timerYEnable() {
+    
+# 72 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint16_t *)(0x94)) 
+# 72 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+         = 0;
+    
+# 73 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint8_t *)(0x71)) 
+# 73 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+          = 0x02;
+}
 
-//  {
+void motorXStart(float distance, int stepPeriod, char direction) {
 
-//    digitalWrite(X_STEP, HIGH);
+    countDistanceX = (int)(distance * 80);
 
-//    delayMicroseconds(200);
+    halfPeriodX = stepPeriod;
 
-//    digitalWrite(X_STEP, LOW);
+    
+# 82 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint16_t *)(0x88)) 
+# 82 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+         = halfPeriodX * 2;
 
-//    delayMicroseconds(200);
+    inturruptStoppedX = RUNNING;
 
-//  }
+    motorDirection(direction);
+}
 
-//} */
-# 1 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\main copy.ino"
-# 2 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\main copy.ino" 2
-# 12 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\main copy.ino"
-char x_stopped = 0;
-char y_stopped = 0;
-char motor_stop_x = 0;
-char motor_stop_y = 1;
-unsigned long curr_micros = 0;
-unsigned long pre_micros = 0;
-unsigned long curr_millis = 0;
-unsigned long pre_millis = 0;
-char step_toggle = 0;
-char dir_toggle = 0;
+void motorYStart(float distance, int stepPeriod, char direction) {
 
-unsigned int step_count_x = 0;
-unsigned int step_count_y = 0;
+    countDistanceY = (int)(distance * 80);
 
-unsigned long pre_micros_y = 0;
-unsigned long pre_millis_y = 0;
-char step_toggle_y = 0;
-char dir_toggle_y = 0;
+    halfPeriodY = stepPeriod;
+
+    
+# 95 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint16_t *)(0x98)) 
+# 95 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+         = halfPeriodY * 2;
+
+    inturruptStoppedY = RUNNING;
+
+    motorDirection(direction);
+}
+
+void motorXYEnable(char xEnable, char yEnable) {
+    if (xEnable == ENABLE) {
+        timerXEnable();
+    }
+
+    if (yEnable == ENABLE) {
+        timerYEnable();
+    }
+    enableMotorX = xEnable;
+    enableMotorY = yEnable;
+}
+
+void motorInit() {
+    state = 1;
+
+    // motorXStart(43.3, 200, RIGHT);
+    // motorYStart(25, 200 * 1.732, UP);
+    // motorXYEnable(ENABLE, ENABLE);
+}
+
+void motorMove(double startX, double startY, double endX, double endY) {
+    float xDist = endX - startX;
+    float yDist = endY - startY;
+
+    char dirX;
+    char dirY;
+
+    double theta = atan2(yDist, xDist);
+
+    int periodX = 200;
+    int periodY = (int)(200.0 * (xDist / yDist));
+
+    char moveEnableX;
+    char moveEnableY;
+
+    // Serial.println(theta);
+
+    if (xDist > 0) {
+        dirX = RIGHT;
+    } else if (xDist < 0) {
+        dirX = LEFT;
+    }
+
+    if (xDist == 0) {
+        moveEnableX = DISABLE;
+    } else {
+        moveEnableX = ENABLE;
+    }
+
+    if (yDist == 0) {
+        moveEnableY = DISABLE;
+    } else if (yDist < 0) {
+        moveEnableY = ENABLE;
+    }
+
+    if (yDist > 0) {
+        dirY = UP;
+    } else {
+        dirY = DOWN;
+    }
+
+    if (xDist != 0) {
+        motorXStart((float)xDist, periodX, dirX);
+    }
+    if (yDist != 0) {
+        motorYStart((float)yDist, periodY, dirY);
+    }
+
+    motorXYEnable(moveEnableX, moveEnableY);
+}
 
 void setup()
 {
- Serial.begin(9600);
 
- pinMode(21, 0x1);
- pinMode(18, 0x0);
- pinMode(15, 0x1);
+    Serial.begin(9600);
 
- pinMode(14, 0x1);
+    pinMode(21, 0x1);
+    pinMode(15, 0x1);
 
- pinMode(23, 0x1);
- pinMode(19, 0x0);
- pinMode(22, 0x1);
+    pinMode(14, 0x1);
 
- digitalWrite(21, 0x1);
- digitalWrite(23, 0x1);
- digitalWrite(14, 0x0);
+    pinMode(23, 0x1);
+    pinMode(22, 0x1);
 
- motor_stop_x = 0;
- step_count_x = 0;
+    digitalWrite(14, 0x0);
+
+    
+# 188 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint8_t *)(0x80)) 
+# 188 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+          = 0x00;
+    
+# 189 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint8_t *)(0x81)) 
+# 189 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+          = 0x0A;
+    
+# 190 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint8_t *)(0x82)) 
+# 190 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+          = 0x00;
+    
+# 191 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint16_t *)(0x84)) 
+# 191 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+         = 0x00;
+    
+# 192 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint8_t *)(0x6F)) 
+# 192 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+          = 0x02;
+
+    
+# 194 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint8_t *)(0x90)) 
+# 194 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+          = 0x00;
+    
+# 195 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint8_t *)(0x91)) 
+# 195 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+          = 0x0A;
+    
+# 196 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint8_t *)(0x92)) 
+# 196 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+          = 0x00;
+    
+# 197 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint16_t *)(0x94)) 
+# 197 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+         = 0x00;
+    
+# 198 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+   (*(volatile uint8_t *)(0x71)) 
+# 198 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+          = 0x02;
+
+    // motorInit();
+
+    state = 1;
+    motorMove(50, 30, 50, 0);
+
 }
 
 void loop()
 {
- curr_micros = micros();
 
- if (curr_micros - pre_micros > 200)
- {
-  pre_micros = curr_micros;
-  if (motor_stop_x == 0)
-  {
-   if (step_toggle == 0)
-   {
-    step_toggle = 1;
-    digitalWrite(15, 0x1);
-   }
-   else if (step_toggle == 1)
-   {
-    step_toggle = 0;
-    digitalWrite(15, 0x0);
-    step_count_x++;
-    if (step_count_x > 3200)
-    {
-     motor_stop_x = 1;
-     step_count_x = 0;
+    if (state == 1) {
+        if (inturruptStoppedX == STOPPED) {
+            timerXDisable();
+        }
 
-     x_stopped = 1;
+        if (inturruptStoppedX == STOPPED) {
+            timerXDisable();
+        }
+
+        if (inturruptStoppedX == STOPPED && inturruptStoppedY == STOPPED) {
+
+            // motorYStart(25, 200 * 1.732, DOWN);
+            // motorXYEnable(DISABLE, ENABLE);
+
+            motorMove(0, 0, 0, 30);
+            state = 2;
+        }
+    } else if (state == 2) {
+
+        if (inturruptStoppedX == STOPPED) {
+            timerXDisable();
+        }
+
+        if (inturruptStoppedX == STOPPED) {
+            timerXDisable();
+        }
+        if (inturruptStoppedX == STOPPED && inturruptStoppedY == STOPPED) {
+
+            // motorXStart(43.3, 200, LEFT);
+            // motorXYEnable(ENABLE, DISABLE);
+
+            // motorMove(30, 0, 0, 0);
+            state = 3;
+        }
+    } else if (state == 3) {
+        // state = 4;
+
+        // inturruptStoppedX = STOPPED;
+        // inturruptStoppedY = STOPPED;
+
+        // enableMotorX = DISABLE;
+        // enableMotorY = DISABLE;
+
+        // timerXDisable();
+        // timerYDisable();
+        if (inturruptStoppedX == STOPPED) {
+            timerXDisable();
+        }
+
+        if (inturruptStoppedX == STOPPED) {
+            timerXDisable();
+        }
+        if (inturruptStoppedX == STOPPED && inturruptStoppedY == STOPPED) {
+
+            // motorXStart(43.3, 200, RIGHT);
+            // motorYStart(25, 200 * 1.732, UP);
+            // motorXYEnable(ENABLE, ENABLE);
+            motorMove(0, 0, 50, 30);
+            state = 1;
+        }
     }
-   }
-  }
- }
- //--------------------------------------------
 
- if (curr_micros - pre_micros_y > 200)
- {
-  pre_micros_y = curr_micros;
-  if (motor_stop_y == 0)
-  {
-   if (step_toggle_y == 0)
-   {
-    step_toggle_y = 1;
-    digitalWrite(22, 0x1);
-   }
-   else if (step_toggle_y == 1)
-   {
-    step_toggle_y = 0;
-    digitalWrite(22, 0x0);
-    step_count_y++;
-    if (step_count_y > 1600)
-    {
-     motor_stop_y = 1;
-     step_count_y = 0;
+}
 
-     y_stopped = 1;
+
+# 274 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+extern "C" void __vector_13 /* Timer/Counter1 Compare Match A */(void) __attribute__ ((signal, used, externally_visible)); void __vector_13 /* Timer/Counter1 Compare Match A */ (void)
+
+# 275 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+{
+
+    if (enableMotorX == ENABLE) {
+        if (toggleStepX == 0) {
+
+            digitalWrite(15, 0x1);
+            toggleStepX = 1;
+        } else {
+            toggleStepX = 0;
+
+            stepCountX++;
+            if (stepCountX > countDistanceX) {
+                digitalWrite(15, 0x0);
+                enableMotorX = DISABLE;
+                inturruptStoppedX = STOPPED;
+                stepCountX = 0;
+            } else {
+                digitalWrite(15, 0x0);
+            }
+        }
     }
-   }
-  } else {
-  }
- }
- //--------------------------------
+}
 
- int in_value = digitalRead(18);
- if (in_value == 1)
- {
-  motor_stop_x = 1;
- }
 
- //----------------------------------
+# 298 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino" 3
+extern "C" void __vector_32 /* Timer/Counter3 Compare Match A */(void) __attribute__ ((signal, used, externally_visible)); void __vector_32 /* Timer/Counter3 Compare Match A */ (void)
 
- if (x_stopped == 1 && motor_stop_y == 1)
- {
-  motor_stop_y = 0;
-  step_count_y = 0;
- }
- else if (x_stopped == 1 && y_stopped == 1)
- {
-  digitalWrite(23, 0x0);
-  digitalWrite(21, 0x0);
+# 299 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
+{
 
-  motor_stop_y = 0;
-  step_count_y = 0;
+    if (enableMotorY == ENABLE) {
+        if (toggleStepY == 0) {
 
-  motor_stop_x = 0;
-  step_count_x = 0;
- }
+            digitalWrite(22, 0x1);
+            toggleStepY = 1;
+        } else {
+            toggleStepY = 0;
+
+            stepCountY++;
+            if (stepCountY > countDistanceY) {
+                digitalWrite(22, 0x0);
+                enableMotorY = DISABLE;
+                inturruptStoppedY = STOPPED;
+                stepCountY = 0;
+            } else {
+                digitalWrite(22, 0x0);
+            }
+        }
+    }
 }

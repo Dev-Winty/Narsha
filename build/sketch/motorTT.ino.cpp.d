@@ -1,5 +1,5 @@
-c:\Users\USER\Documents\PlatformIO\Projects\Narsha\build\sketch\main.ino.cpp.o: \
- c:\Users\USER\Documents\PlatformIO\Projects\Narsha\build\sketch\main.ino.cpp \
+c:\Users\USER\Documents\PlatformIO\Projects\Narsha\build\sketch\motorTT.ino.cpp.o: \
+ c:\Users\USER\Documents\PlatformIO\Projects\Narsha\build\sketch\motorTT.ino.cpp \
  C:\Program\ Files\ (x86)\Arduino\hardware\arduino\avr\cores\arduino/Arduino.h \
  C:\Program\ Files\ (x86)\Arduino\hardware\arduino\avr\cores\arduino/binary.h \
  C:\Program\ Files\ (x86)\Arduino\hardware\arduino\avr\cores\arduino/WCharacter.h \
