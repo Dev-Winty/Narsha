@@ -1,5 +1,6 @@
 #line 1 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
 #include <Arduino.h>
+#include <gcode_sample_480.h>
 
 #define X_DIR 21
 #define X_STEP 15
@@ -44,31 +45,6 @@ char inturruptStoppedY = STOPPED;
 
 char state = 0;
 
-#line 46 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
-void motorDirection(char dir);
-#line 58 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
-void timerXDisable();
-#line 62 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
-void timerXEnable();
-#line 67 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
-void timerYDisable();
-#line 71 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
-void timerYEnable();
-#line 76 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
-void motorXStart(float distance, int stepPeriod, char direction);
-#line 89 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
-void motorYStart(float distance, int stepPeriod, char direction);
-#line 102 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
-void motorXYEnable(char xEnable, char yEnable);
-#line 114 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
-void motorInit();
-#line 122 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
-void motorMove(double startX, double startY, double endX, double endY);
-#line 173 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
-void setup();
-#line 207 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
-void loop();
-#line 46 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
 void motorDirection(char dir) {
     if (dir == LEFT) {
         digitalWrite(X_DIR, HIGH);
@@ -152,10 +128,22 @@ void motorMove(double startX, double startY, double endX, double endY) {
     char dirX;
     char dirY;
 
+    int periodX;
+    int periodY;
+
     double theta = atan2(yDist, xDist);
 
-    int periodX = 200;
-    int periodY = (int)(200.0 * (xDist / yDist));
+    periodX = 200;
+
+    if (yDist != 0 && xDist != 0) {
+        periodY = (int)(200.0 * (xDist / yDist));
+    } 
+
+    periodX = abs(periodX);
+    periodY = abs(periodY);
+
+    xDist = abs(xDist);
+    yDist = abs(yDist);
 
     char moveEnableX;
     char moveEnableY;
@@ -176,13 +164,13 @@ void motorMove(double startX, double startY, double endX, double endY) {
 
     if (yDist == 0) {
         moveEnableY = DISABLE;
-    } else if (yDist < 0) {
+    } else {
         moveEnableY = ENABLE;
     }
 
     if (yDist > 0) {
         dirY = UP;
-    } else {
+    } else if (yDist < 0){
         dirY = DOWN;
     }
 
@@ -225,15 +213,24 @@ void setup()
 
     // motorInit();
 
-    state = 1;
-    motorMove(50, 30, 50, 0);
+    state = 0;
+    motorMove(0, 0, 50, 30);
 
 }
+
+double gCodeArray[4][2] = {
+    {0, 0},
+    {50, 50},
+    {0, 50},
+    {0, 0}
+};
+
+char preState = 0;
 
 void loop()
 {
 
-    if (state == 1) {
+    while (1) {
         if (inturruptStoppedX == STOPPED) {
             timerXDisable();
         }
@@ -247,53 +244,80 @@ void loop()
             // motorYStart(25, 200 * 1.732, DOWN);
             // motorXYEnable(DISABLE, ENABLE);
 
-            motorMove(0, 0, 0, 30);
-            state = 2;
-        } 
-    } else if (state == 2) {
+            // motorMove(gCodeArray[preState][0], gCodeArray[preState][1], gCodeArray[preState][0], gCodeArray[preState][1]);
+            motorMove((double)(double)xy_pos[preState][0], (double)xy_pos[preState][1], (double)xy_pos[preState][0], (double)xy_pos[preState][1]);
 
-        if (inturruptStoppedX == STOPPED) {
-            timerXDisable();
-        }
+            preState = state;
+            state++;
 
-        if (inturruptStoppedX == STOPPED) {
-            timerXDisable();
-        }
-        if (inturruptStoppedX == STOPPED && inturruptStoppedY == STOPPED) {
-
-            // motorXStart(43.3, 200, LEFT);
-            // motorXYEnable(ENABLE, DISABLE);
-
-            // motorMove(30, 0, 0, 0);
-            state = 3;
-        } 
-    } else if (state == 3) {
-        // state = 4;
-
-        // inturruptStoppedX = STOPPED;
-        // inturruptStoppedY = STOPPED;
-
-        // enableMotorX = DISABLE;
-        // enableMotorY = DISABLE;
-
-        // timerXDisable();
-        // timerYDisable();
-        if (inturruptStoppedX == STOPPED) {
-            timerXDisable();
-        }
-
-        if (inturruptStoppedX == STOPPED) {
-            timerXDisable();
-        }
-        if (inturruptStoppedX == STOPPED && inturruptStoppedY == STOPPED) {
-
-            // motorXStart(43.3, 200, RIGHT);
-            // motorYStart(25, 200 * 1.732, UP);
-            // motorXYEnable(ENABLE, ENABLE);
-            motorMove(0, 0, 50, 30);
-            state = 1;
+            if (state == 480) {
+                state = 0;
+            }
         } 
     }
+
+    // if (state == 1) {
+    //     if (inturruptStoppedX == STOPPED) {
+    //         timerXDisable();
+    //     }
+
+    //     if (inturruptStoppedX == STOPPED) {
+    //         timerXDisable();
+    //     }
+
+    //     if (inturruptStoppedX == STOPPED && inturruptStoppedY == STOPPED) {
+
+    //         // motorYStart(25, 200 * 1.732, DOWN);
+    //         // motorXYEnable(DISABLE, ENABLE);
+
+    //         delay(1000);
+    //         motorMove(0, 0, 0, -30);
+    //         state = 2;
+    //     } 
+    // } else if (state == 2) {
+
+    //     if (inturruptStoppedX == STOPPED) {
+    //         timerXDisable();
+    //     }
+
+    //     if (inturruptStoppedX == STOPPED) {
+    //         timerXDisable();
+    //     }
+    //     if (inturruptStoppedX == STOPPED && inturruptStoppedY == STOPPED) {
+
+    //         // motorXStart(43.3, 200, LEFT);
+    //         // motorXYEnable(ENABLE, DISABLE);
+
+    //         // motorMove(30, 0, 0, 0);
+    //         state = 3;
+    //     } 
+    // } else if (state == 3) {
+    //     // state = 4;
+
+    //     // inturruptStoppedX = STOPPED;
+    //     // inturruptStoppedY = STOPPED;
+
+    //     // enableMotorX = DISABLE;
+    //     // enableMotorY = DISABLE;
+
+    //     // timerXDisable();
+    //     // timerYDisable();
+    //     if (inturruptStoppedX == STOPPED) {
+    //         timerXDisable();
+    //     }
+
+    //     if (inturruptStoppedX == STOPPED) {
+    //         timerXDisable();
+    //     }
+    //     if (inturruptStoppedX == STOPPED && inturruptStoppedY == STOPPED) {
+
+    //         // motorXStart(43.3, 200, RIGHT);
+    //         // motorYStart(25, 200 * 1.732, UP);
+    //         // motorXYEnable(ENABLE, ENABLE);
+    //         motorMove(0, 0, 50, 30);
+    //         state = 1;
+    //     } 
+    // }
     
 }
 

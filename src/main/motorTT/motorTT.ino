@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "gcode_sample_480.h"
 
 #define X_DIR 21
 #define X_STEP 15
@@ -41,7 +42,7 @@ int halfPeriodY = 0;
 char inturruptStoppedX = STOPPED;
 char inturruptStoppedY = STOPPED;
 
-char state = 0;
+int state = 0;
 
 void motorDirection(char dir) {
     if (dir == LEFT) {
@@ -60,7 +61,7 @@ void timerXDisable() {
 }
 
 void timerXEnable() {
-    TCNT3 = 0;
+    TCNT1 = 0;
     TIMSK1 = 0x02;
 }
 
@@ -126,20 +127,34 @@ void motorMove(double startX, double startY, double endX, double endY) {
     char dirX;
     char dirY;
 
+    int periodX;
+    int periodY;
+
     double theta = atan2(yDist, xDist);
 
-    int periodX = 200;
-    int periodY = (int)(200.0 * (xDist / yDist));
+    periodX = 200;
+    periodY = 200;
+
+    if (yDist != 0 && xDist != 0) {
+        periodY = (int)(200.0 * (xDist / yDist));
+    } 
+
+    periodX = abs(periodX);
+    periodY = abs(periodY);
 
     char moveEnableX;
     char moveEnableY;
-
-    // Serial.println(theta);
 
     if (xDist > 0) {
         dirX = RIGHT;
     } else if (xDist < 0) {
         dirX = LEFT;
+    }
+
+    if (yDist > 0) {
+        dirY = UP;
+    } else if (yDist < 0){
+        dirY = DOWN;
     }
 
     if (xDist == 0) {
@@ -154,11 +169,9 @@ void motorMove(double startX, double startY, double endX, double endY) {
         moveEnableY = ENABLE;
     }
 
-    if (yDist > 0) {
-        dirY = UP;
-    } else if (yDist < 0){
-        dirY = DOWN;
-    }
+    xDist = abs(xDist);
+    yDist = abs(yDist);
+
 
     if (xDist != 0) {
         motorXStart((float)xDist, periodX, dirX);
@@ -168,6 +181,7 @@ void motorMove(double startX, double startY, double endX, double endY) {
     }
 
     motorXYEnable(moveEnableX, moveEnableY);
+
 }
 
 void setup()
@@ -199,15 +213,30 @@ void setup()
 
     // motorInit();
 
-    state = 1;
-    motorMove(50, 30, 50, 0);
+    // state = 0;
+    // motorMove(0, 0, 50, 30);
 
 }
+
+double gCodeArray[4][2] = {
+    {0, 0},
+    {50, 0},
+    {50, 50},
+    {0, 50}
+};
+
+int preState = 0;
 
 void loop()
 {
 
-    if (state == 1) {
+    // state = 0;
+    // motorMove(0.0, 0.0, (double)xy_pos[state][0], (double)xy_pos[state][1]);
+
+    // preState = state;
+    // state++
+
+    while (1) {
         if (inturruptStoppedX == STOPPED) {
             timerXDisable();
         }
@@ -221,54 +250,80 @@ void loop()
             // motorYStart(25, 200 * 1.732, DOWN);
             // motorXYEnable(DISABLE, ENABLE);
 
-            delay(1000);
-            motorMove(0, 0, 0, 0);
-            state = 2;
-        } 
-    } else if (state == 2) {
+            // motorMove(gCodeArray[preState][0], gCodeArray[preState][1], gCodeArray[state][0], gCodeArray[state][1]);
+            motorMove((double)xy_pos[preState][0], (double)xy_pos[preState][1], (double)xy_pos[state][0], (double)xy_pos[state][1]);
 
-        if (inturruptStoppedX == STOPPED) {
-            timerXDisable();
-        }
+            preState = state;
+            state++;
 
-        if (inturruptStoppedX == STOPPED) {
-            timerXDisable();
-        }
-        if (inturruptStoppedX == STOPPED && inturruptStoppedY == STOPPED) {
-
-            // motorXStart(43.3, 200, LEFT);
-            // motorXYEnable(ENABLE, DISABLE);
-
-            // motorMove(30, 0, 0, 0);
-            state = 3;
-        } 
-    } else if (state == 3) {
-        // state = 4;
-
-        // inturruptStoppedX = STOPPED;
-        // inturruptStoppedY = STOPPED;
-
-        // enableMotorX = DISABLE;
-        // enableMotorY = DISABLE;
-
-        // timerXDisable();
-        // timerYDisable();
-        if (inturruptStoppedX == STOPPED) {
-            timerXDisable();
-        }
-
-        if (inturruptStoppedX == STOPPED) {
-            timerXDisable();
-        }
-        if (inturruptStoppedX == STOPPED && inturruptStoppedY == STOPPED) {
-
-            // motorXStart(43.3, 200, RIGHT);
-            // motorYStart(25, 200 * 1.732, UP);
-            // motorXYEnable(ENABLE, ENABLE);
-            motorMove(0, 0, 50, 30);
-            state = 1;
+            if (state == 480) {
+                state = 0;
+            }
         } 
     }
+
+    // if (state == 1) {
+    //     if (inturruptStoppedX == STOPPED) {
+    //         timerXDisable();
+    //     }
+
+    //     if (inturruptStoppedX == STOPPED) {
+    //         timerXDisable();
+    //     }
+
+    //     if (inturruptStoppedX == STOPPED && inturruptStoppedY == STOPPED) {
+
+    //         // motorYStart(25, 200 * 1.732, DOWN);
+    //         // motorXYEnable(DISABLE, ENABLE);
+
+    //         delay(1000);
+    //         motorMove(0, 0, 0, -30);
+    //         state = 2;
+    //     } 
+    // } else if (state == 2) {
+
+    //     if (inturruptStoppedX == STOPPED) {
+    //         timerXDisable();
+    //     }
+
+    //     if (inturruptStoppedX == STOPPED) {
+    //         timerXDisable();
+    //     }
+    //     if (inturruptStoppedX == STOPPED && inturruptStoppedY == STOPPED) {
+
+    //         // motorXStart(43.3, 200, LEFT);
+    //         // motorXYEnable(ENABLE, DISABLE);
+
+    //         // motorMove(30, 0, 0, 0);
+    //         state = 3;
+    //     } 
+    // } else if (state == 3) {
+    //     // state = 4;
+
+    //     // inturruptStoppedX = STOPPED;
+    //     // inturruptStoppedY = STOPPED;
+
+    //     // enableMotorX = DISABLE;
+    //     // enableMotorY = DISABLE;
+
+    //     // timerXDisable();
+    //     // timerYDisable();
+    //     if (inturruptStoppedX == STOPPED) {
+    //         timerXDisable();
+    //     }
+
+    //     if (inturruptStoppedX == STOPPED) {
+    //         timerXDisable();
+    //     }
+    //     if (inturruptStoppedX == STOPPED && inturruptStoppedY == STOPPED) {
+
+    //         // motorXStart(43.3, 200, RIGHT);
+    //         // motorYStart(25, 200 * 1.732, UP);
+    //         // motorXYEnable(ENABLE, ENABLE);
+    //         motorMove(0, 0, 50, 30);
+    //         state = 1;
+    //     } 
+    // }
     
 }
 
