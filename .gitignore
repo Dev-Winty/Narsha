@@ -45,4 +45,10 @@ GitHub.sublime-settings
 .history
 .ionide
 
+.pio/*
+build/*
+include/*
+lib/*
+platformio.ini
+
 # End of https://www.toptal.com/developers/gitignore/api/sublimetext,visualstudiocode
