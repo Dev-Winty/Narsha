@@ -1,6 +1,5 @@
-#line 1 "c:\\Users\\USER\\Documents\\PlatformIO\\Projects\\Narsha\\src\\main\\motorTT\\motorTT.ino"
 #include <Arduino.h>
-#include <gcode_sample_480.h>
+#include "gcode_sample_480.h"
 
 #define X_DIR 21
 #define X_STEP 15
@@ -43,7 +42,7 @@ int halfPeriodY = 0;
 char inturruptStoppedX = STOPPED;
 char inturruptStoppedY = STOPPED;
 
-char state = 0;
+int state = 0;
 
 void motorDirection(char dir) {
     if (dir == LEFT) {
@@ -62,7 +61,7 @@ void timerXDisable() {
 }
 
 void timerXEnable() {
-    TCNT3 = 0;
+    TCNT1 = 0;
     TIMSK1 = 0x02;
 }
 
@@ -121,7 +120,7 @@ void motorInit() {
     // motorXYEnable(ENABLE, ENABLE);
 }
 
-void motorMove(double startX, double startY, double endX, double endY) {
+void motorMove(double startX, double startY, double endX, double endY, int speed) {
     float xDist = endX - startX;
     float yDist = endY - startY;
 
@@ -131,9 +130,11 @@ void motorMove(double startX, double startY, double endX, double endY) {
     int periodX;
     int periodY;
 
-    double theta = atan2(yDist, xDist);
-
     periodX = 200;
+    periodY = 200;
+
+    double crossSpeed = (1000000.0 / (((double)speed / 60.0) * 80.0)) / 2.0;
+    double theta = atan2(yDist, xDist);
 
     if (yDist != 0 && xDist != 0) {
         periodY = (int)(200.0 * (xDist / yDist));
@@ -142,18 +143,19 @@ void motorMove(double startX, double startY, double endX, double endY) {
     periodX = abs(periodX);
     periodY = abs(periodY);
 
-    xDist = abs(xDist);
-    yDist = abs(yDist);
-
     char moveEnableX;
     char moveEnableY;
-
-    // Serial.println(theta);
 
     if (xDist > 0) {
         dirX = RIGHT;
     } else if (xDist < 0) {
         dirX = LEFT;
+    }
+
+    if (yDist > 0) {
+        dirY = UP;
+    } else if (yDist < 0){
+        dirY = DOWN;
     }
 
     if (xDist == 0) {
@@ -168,11 +170,9 @@ void motorMove(double startX, double startY, double endX, double endY) {
         moveEnableY = ENABLE;
     }
 
-    if (yDist > 0) {
-        dirY = UP;
-    } else if (yDist < 0){
-        dirY = DOWN;
-    }
+    xDist = abs(xDist);
+    yDist = abs(yDist);
+
 
     if (xDist != 0) {
         motorXStart((float)xDist, periodX, dirX);
@@ -182,6 +182,7 @@ void motorMove(double startX, double startY, double endX, double endY) {
     }
 
     motorXYEnable(moveEnableX, moveEnableY);
+
 }
 
 void setup()
@@ -213,22 +214,28 @@ void setup()
 
     // motorInit();
 
-    state = 0;
-    motorMove(0, 0, 50, 30);
+    // state = 0;
+    // motorMove(0, 0, 50, 30);
 
 }
 
 double gCodeArray[4][2] = {
     {0, 0},
+    {50, 0},
     {50, 50},
-    {0, 50},
-    {0, 0}
+    {0, 50}
 };
 
-char preState = 0;
+int preState = 0;
 
 void loop()
 {
+
+    // state = 0;
+    // motorMove(0.0, 0.0, (double)xy_pos[state][0], (double)xy_pos[state][1]);
+
+    // preState = state;
+    // state++
 
     while (1) {
         if (inturruptStoppedX == STOPPED) {
@@ -244,8 +251,8 @@ void loop()
             // motorYStart(25, 200 * 1.732, DOWN);
             // motorXYEnable(DISABLE, ENABLE);
 
-            // motorMove(gCodeArray[preState][0], gCodeArray[preState][1], gCodeArray[preState][0], gCodeArray[preState][1]);
-            motorMove((double)(double)xy_pos[preState][0], (double)xy_pos[preState][1], (double)xy_pos[preState][0], (double)xy_pos[preState][1]);
+            // motorMove(gCodeArray[preState][0], gCodeArray[preState][1], gCodeArray[state][0], gCodeArray[state][1]);
+            motorMove((double)xy_pos[preState][0], (double)xy_pos[preState][1], (double)xy_pos[state][0], (double)xy_pos[state][1], 1125);
 
             preState = state;
             state++;
